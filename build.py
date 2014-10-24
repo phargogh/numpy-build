@@ -87,7 +87,7 @@ if __name__ == '__main__':
     site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
     with open(site_cfg_uri, 'w') as site_file:
         site_file.write(config_string)
-    subprocess.call('python setup.py bdist_wheel')
+    subprocess.call('python setup.py bdist_wheel', shell=True)
     os.chdir('..')
 
     end_time = time.time()
