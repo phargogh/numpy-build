@@ -122,11 +122,11 @@ if __name__ == '__main__':
         numpy_version = '1.9.0'
 
     # fetch and build openblas
-#    dst_openblas_dir = build_openblas()
-    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
+    dst_openblas_dir = build_openblas()
+#    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
 
     # fetch and build numpy
-#    build_numpy(numpy_version, dst_openblas_dir)
+    build_numpy(numpy_version, dst_openblas_dir)
 
     # fetch and build scipy
     build_scipy('0.14.0', dst_openblas_dir)
