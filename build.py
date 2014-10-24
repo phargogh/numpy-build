@@ -81,9 +81,11 @@ if __name__ == '__main__':
     # Now that we've built openblas, write the numpy site.cfg file to configure
     # openblas and build the numpy wheel.
     os.chdir(numpy_dir)
+    print os.getcwd()
     openblas_lib = os.path.join(dst_openblas_dir, 'lib')
     openblas_inc = os.path.join(dst_openblas_dir, 'include')
-    config_string = "[openblas]\nlibrary_dirs = %s\ninclude_dirs = %s\n"
+    config_string = "[openblas]\nlibrary_dirs = %s\ninclude_dirs = %s\n" % (
+        openblas_lib, openblas_inc)
     site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
     with open(site_cfg_uri, 'w') as site_file:
         site_file.write(config_string)
