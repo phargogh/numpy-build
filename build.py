@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import glob
 
+version_info = lambda v: map(lambda x: int(x), v.split('.'))
+
 def download_file(url, local_file):
     print 'downloading ...'
     u = urllib2.urlopen(url)
@@ -107,7 +109,6 @@ def build_scipy(version, openblas_dir):
 
 if __name__ == '__main__':
     start_time = time.time()
-    version_info = lambda v: map(lambda x: int(x), v.split('.'))
 
     # if the user provided an argument and it's a file, use that.
     try:
