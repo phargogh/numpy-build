@@ -14,7 +14,7 @@ def download_file(url, local_file):
     localFile.write(u.read())
     localFile.close()
 
-def download_numpy(version):
+def download(version, project):
     """Download the approprate version of the numpy source from the official
     download mirror.
 
@@ -26,9 +26,10 @@ def download_numpy(version):
     # parse out the version info
     major, minor, release = version_info(version)
 
-    numpy_download_uri = 'https://pypi.python.org/packages/source/n/numpy/'
+    first_letter = project[0]
+    numpy_download_uri = 'https://pypi.python.org/packages/source/%s/%s/' % (first_letter, project)
 
-    local_gzip = 'numpy-%s.tar.gz' % version
+    local_gzip = '%s-%s.tar.gz' % (project, version)
     numpy_download_uri += local_gzip
     print numpy_download_uri
     download_file(numpy_download_uri, local_gzip)
@@ -53,6 +54,56 @@ def build_openblas():
 
     return dst_openblas_dir
 
+def write_numpy_cfg(cfg_uri, openblas_dir):
+    openblas_lib = os.path.join(openblas_dir, 'lib')
+    openblas_inc = os.path.join(openblas_dir, 'include')
+    config_string = "[openblas]\nlibrary_dirs = %s\ninclude_dirs = %s\n" % (
+        openblas_lib, openblas_inc)
+    with open(cfg_uri, 'w') as site_file:
+        site_file.write(config_string)
+
+def build_numpy(version, openblas_dir):
+    local_gzip = download(version, 'numpy')
+
+    numpy_dir = local_gzip.replace('.tar.gz', '')
+    if os.path.exists(numpy_dir):
+        print 'removing %s' % numpy_dir
+        shutil.rmtree(numpy_dir)
+
+    print 'extracting', local_gzip
+    tfile = tarfile.open(local_gzip, 'r:gz')
+    tfile.extractall('.')
+
+    # Now that we've built openblas, write the numpy site.cfg file to configure
+    # openblas and build the numpy wheel.
+    os.chdir(numpy_dir)
+    print os.getcwd()
+    site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
+    write_numpy_cfg(site_cfg_uri)
+    subprocess.call('python setup.py bdist_wheel', shell=True)
+    os.chdir('..')
+
+def build_scipy(version, openblas_dir):
+    local_gzip = download(version, 'scipy')
+
+    scipy_dir = local_gzip.replace('.tar.gz', '')
+    if os.path.exists(scipy_dir):
+        print 'removing %s' % scipy_dir
+        shutil.rmtree(scipy_dir)
+
+    print 'extracting', local_gzip
+    tfile = tarfile.open(local_gzip, 'r:gz')
+    tfile.extractall('.')
+
+    # Now that we've built openblas, write the scipy site.cfg file to configure
+    # openblas and build the scipy wheel.
+    os.chdir(scipy_dir)
+    print os.getcwd()
+    site_cfg_uri = os.path.join(scipy_dir, 'site.cfg')
+    write_numpy_cfg(site_cfg_uri, openblas_dir)
+    subprocess.call('python setup.py bdist_wheel', shell=True)
+    os.chdir('..')
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -69,33 +120,16 @@ if __name__ == '__main__':
         local_gzip = source_filepath
     else:
         numpy_version = '1.9.0'
-        local_gzip = download_numpy(numpy_version)
-
-    numpy_dir = local_gzip.replace('.tar.gz', '')
-    if os.path.exists(numpy_dir):
-        print 'removing %s' % numpy_dir
-        shutil.rmtree(numpy_dir)
-
-    print 'extracting', local_gzip
-    tfile = tarfile.open(local_gzip, 'r:gz')
-    tfile.extractall('.')
 
     # fetch and build openblas
-    dst_openblas_dir = build_openblas()
+#    dst_openblas_dir = build_openblas()
+    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
 
-    # Now that we've built openblas, write the numpy site.cfg file to configure
-    # openblas and build the numpy wheel.
-    os.chdir(numpy_dir)
-    print os.getcwd()
-    openblas_lib = os.path.join(dst_openblas_dir, 'lib')
-    openblas_inc = os.path.join(dst_openblas_dir, 'include')
-    config_string = "[openblas]\nlibrary_dirs = %s\ninclude_dirs = %s\n" % (
-        openblas_lib, openblas_inc)
-    site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
-    with open(site_cfg_uri, 'w') as site_file:
-        site_file.write(config_string)
-    subprocess.call('python setup.py bdist_wheel', shell=True)
-    os.chdir('..')
+    # fetch and build numpy
+#    build_numpy(numpy_version, dst_openblas_dir)
+
+    # fetch and build scipy
+    build_scipy('0.14.0', dst_openblas_dir)
 
     end_time = time.time()
     print 'All operations took %ss' % ((end_time - start_time))
