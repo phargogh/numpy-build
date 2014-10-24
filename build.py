@@ -63,23 +63,26 @@ if __name__ == '__main__':
     tfile.extractall('.')
 
     # fetch and build openblas
+    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
+    if os.path.exists(dst_openblas_dir):
+        shutil.rmtree(dst_openblas_dir)
     openblas_url = 'http://github.com/xianyi/OpenBLAS/tarball/v0.2.12'
     download_file(openblas_url, 'openblas.tar.gz')
     tfile = tarfile.open('openblas.tar.gz', 'r:gz')
     tfile.extractall('.')
-    os.rename(glob.glob('xianyi-*')[0], 'openblas')
+    os.rename(glob.glob('xianyi-*')[0], os.path.basename(dst_openblas_dir))
 
     # define the openblas source dir
-    openblas_dir = os.path.join(os.getcwd(), 'openblas')
-    os.chdir(openblas_dir)
-    subprocess.call('make --PREFIX=. install', shell=True)
+    os.chdir(dst_openblas_dir)
+    subprocess.call('make', shell=True)
+    subprocess.call('make PREFIX=. install', shell=True)
     os.chdir('..')
 
     # Now that we've built openblas, write the numpy site.cfg file to configure
     # openblas and build the numpy wheel.
     os.chdir(numpy_dir)
-    openblas_lib = os.path.join(openblas_dir, 'lib')
-    openblas_inc = os.path.join(openblas_dir, 'include')
+    openblas_lib = os.path.join(dst_openblas_dir, 'lib')
+    openblas_inc = os.path.join(dst_openblas_dir, 'include')
     config_string = "[openblas]\nlibrary_dirs = %s\ninclude_dirs = %s\n"
     site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
     with open(site_cfg_uri, 'w') as site_file:
