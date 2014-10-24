@@ -81,7 +81,7 @@ def build_numpy(version, openblas_dir):
     os.chdir(numpy_dir)
     print os.getcwd()
     site_cfg_uri = os.path.join(numpy_dir, 'site.cfg')
-    write_numpy_cfg(site_cfg_uri)
+    write_numpy_cfg(site_cfg_uri, openblas_dir)
     subprocess.call('python setup.py bdist_wheel', shell=True)
     os.chdir('..')
 
