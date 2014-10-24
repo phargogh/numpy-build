@@ -55,6 +55,7 @@ target/
 
 # project-specific details
 numpy-*
+scipy-*
 openblas
 *.tar.gz
 *.sw*
