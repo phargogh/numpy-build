@@ -35,6 +35,24 @@ def download_numpy(version):
 
     return os.path.abspath(local_gzip)
 
+def build_openblas():
+    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
+    if os.path.exists(dst_openblas_dir):
+        shutil.rmtree(dst_openblas_dir)
+    openblas_url = 'http://github.com/xianyi/OpenBLAS/tarball/v0.2.12'
+    download_file(openblas_url, 'openblas.tar.gz')
+    tfile = tarfile.open('openblas.tar.gz', 'r:gz')
+    tfile.extractall('.')
+    os.rename(glob.glob('xianyi-*')[0], os.path.basename(dst_openblas_dir))
+
+    # define the openblas source dir
+    os.chdir(dst_openblas_dir)
+    subprocess.call('make', shell=True)
+    subprocess.call('make PREFIX=. install', shell=True)
+    os.chdir('..')
+
+    return dst_openblas_dir
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -63,20 +81,7 @@ if __name__ == '__main__':
     tfile.extractall('.')
 
     # fetch and build openblas
-    dst_openblas_dir = os.path.join(os.getcwd(), 'openblas')
-    if os.path.exists(dst_openblas_dir):
-        shutil.rmtree(dst_openblas_dir)
-    openblas_url = 'http://github.com/xianyi/OpenBLAS/tarball/v0.2.12'
-    download_file(openblas_url, 'openblas.tar.gz')
-    tfile = tarfile.open('openblas.tar.gz', 'r:gz')
-    tfile.extractall('.')
-    os.rename(glob.glob('xianyi-*')[0], os.path.basename(dst_openblas_dir))
-
-    # define the openblas source dir
-    os.chdir(dst_openblas_dir)
-    subprocess.call('make', shell=True)
-    subprocess.call('make PREFIX=. install', shell=True)
-    os.chdir('..')
+    dst_openblas_dir = build_openblas()
 
     # Now that we've built openblas, write the numpy site.cfg file to configure
     # openblas and build the numpy wheel.
